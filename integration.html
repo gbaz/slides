@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0043)file:///Users/gb/devel/DiffEq/test.html#(1) -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Gershom Bazerman">
+  <meta name="date" content="OBT at POPL 2012">
+  <link rel="stylesheet" type="text/css" media="screen, projection, print" href="./integration_files/slidy.css">
+  <script src="./integration_files/slidy.js.gz" charset="utf-8" type="text/javascript"></script>
+<title> (1)</title></head>
+<body style="visibility: visible; font-size: 20pt; " class=" single_slide"><div class=" slidy_toc hidden"><div class=" toc-heading">Table of Contents</div>1. <a href="./integration_files/pres_new.html" class=" titleslide">First Class Differential Equations</a><br>2. <a href="#(2)">Ordinary Differential Equations</a><br>3. <a href="#(3)">Goal</a><br>4. <a href="#(4)">Anti-Goals</a><br>5. <a href="#(5)">Intuitions</a><br>6. <a href="#(6)">Tools</a><br>7. <a href="#(7)">Simple (est?) example of a differential</a><br>8. <a href="#(8)">First fundamental theorem of calculus:</a><br>9. <a href="#(9)">Second Fundamental Theorem of Calculus</a><br>10. <a href="#(10)">A Little Algebra...</a><br>11. <a href="#(11)">Expand...</a><br>12. <a href="#(12)">As is lifting operations to streams.</a><br>13. <a href="#(13)">Reformulate</a><br>14. <a href="#(14)">Extrapolate...</a><br>15. <a href="#(15)">Streams of Polynomials</a><br>16. <a href="#(16)">And we can run it</a><br>17. <a href="#(17)">A graph</a><br>18. <a href="#(18)">Wait, what?</a><br>19. <a href="#(19)">Is it any good?</a><br>20. <a href="#(20)">Picard Iteration</a><br>21. <a href="#(21)">Another example</a><br>22. <a href="#(22)">(22)</a><br>23. <a href="#(23)">TL;DL</a><br>24. <a href="#(24)">Future work</a></div>
+<div class="slide titlepage first-slide">
+  <h1 class="title">First Class Differential Equations</h1>
+  <p class="author">
+Gershom Bazerman
+  </p>
+  <p class="date">OBT at POPL 2012</p>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="ordinary-differential-equations">Ordinary Differential Equations</h1>
+<p><img src="./integration_files/chart" alt="y&#39; = f(x,y(x))" title="y&#39; = f(x,y(x))"></p>
+<p><img src="./integration_files/chart(1)" alt="y&#39;&#39; = f(x,y(x),y&#39;(x))" title="y&#39;&#39; = f(x,y(x),y&#39;(x))"></p>
+<p>...</p>
+<ul>
+<li>x may be a vector</li>
+<li>no partial derivatives!</li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="goal">Goal</h1>
+<p>Develop a purely semantic account of approximate solutions to differential equations.</p>
+<h3 id="subgoals">Subgoals</h3>
+<ul>
+<li>Leave the numbers to the computers</li>
+<li>Use only high school calculus</li>
+</ul>
+<h4 id="sub-subgoals">Sub-subgoals</h4>
+<ul>
+<li>Choices should be as natural as possible</li>
+<li>Choices should preserve as much information as possible</li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="anti-goals">Anti-Goals</h1>
+<h4 id="magic-numbers">Magic numbers</h4>
+<div class="figure">
+<img src="./integration_files/rk4.png" alt="Butcher tableau for Runge-Kutta 4"><p class="caption">Butcher tableau for Runge-Kutta 4</p>
+</div>
+<h4 id="non-compositionality">Non-compositionality</h4>
+<pre class="sourceCode haskell"><code>type Step s = (s,TimeDelta)-&gt;s
+run :: s -&gt; Step s -&gt; TimeDelta -&gt; [(TimeDelta,s)]
+</code></pre>
+<ul>
+<li>steps don't compose.</li>
+<li>Step /= run Step</li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="intuitions">Intuitions</h1>
+<ul>
+<li>A differential equation is an instantaneous recurrence relation</li>
+<li>Like recurrence relations we have existance and uniqueness proofs</li>
+<li>Like recurrence relations these proofs derive from fix-point theorems</li>
+<li>C.f. "Calculus in coinductive form," Dusko Pavlovic and Martin H. Escardo.</li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="tools">Tools</h1>
+<pre class="sourceCode haskell"><code>class Analytic a where
+    integ :: a -&gt; a
+    derive :: a -&gt; a
+</code></pre>
+<pre class="sourceCode haskell"><code>class Sample a where
+   sampleAt :: a -&gt; Double -&gt; Double
+</code></pre>
+<pre class="sourceCode haskell"><code>newtype Poly = Poly [Double]
+instance Num Poly where...
+instance Fractional Poly where...
+instance Analytic Poly where...
+instance Sample Poly where...
+c.f. Doug McIlroy
+</code></pre>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="simple-est-example-of-a-differential">Simple (est?) example of a differential</h1>
+<p><img src="./integration_files/chart(2)" alt="f(x) = f&#39;(x)" title="f(x) = f&#39;(x)"></p>
+<p><img src="./integration_files/chart(3)" alt="f(x) = C * e^x" title="f(x) = C * e^x"></p>
+<h3 id="provide-an-initial-value">Provide an initial value</h3>
+<ul>
+<li><img src="./integration_files/chart(4)" alt="f(0) = 1" title="f(0) = 1"></li>
+<li><img src="./integration_files/chart(5)" alt="f(0) = C * e ^ 0" title="f(0) = C * e ^ 0"></li>
+<li><img src="./integration_files/chart(6)" alt="f(0) = C" title="f(0) = C"></li>
+<li><img src="./integration_files/chart(7)" alt="C = 1" title="C = 1"></li>
+<li><img src="./integration_files/chart(8)" alt="f(x) = e^x" title="f(x) = e^x"></li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="first-fundamental-theorem-of-calculus">First fundamental theorem of calculus:</h1>
+<h3 id="when...">when...</h3>
+<p><img src="./integration_files/chart(9)" alt="\displaystyle F = \int f(x)\,\mathrm{d}x" title="\displaystyle F = \int f(x)\,\mathrm{d}x"></p>
+<h3 id="then...">then...</h3>
+<p><img src="./integration_files/chart(10)" alt="\displaystyle{\mathrm{d}F\over\mathrm{d}x} = f(x)" title="\displaystyle{\mathrm{d}F\over\mathrm{d}x} = f(x)"></p>
+<ul>
+<li>i.e. F'(x) = f(x)</li>
+<li>i.e. diff . integrate = id</li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="second-fundamental-theorem-of-calculus">Second Fundamental Theorem of Calculus</h1>
+<p><img src="./integration_files/chart(11)" alt="\displaystyle\int_a^b f(x) dx = F(b) - F(a)" title="\displaystyle\int_a^b f(x) dx = F(b) - F(a)"></p>
+<p>where <img src="./integration_files/chart(12)" alt="F" title="F"> is an indefinite integral (antiderivative) of <img src="./integration_files/chart(13)" alt="f" title="f">.</p>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="a-little-algebra...">A Little Algebra...</h1>
+<ol style="list-style-type: decimal">
+<li><p>Flip</p>
+<p><img src="./integration_files/chart(14)" alt="\displaystyle F(b) = \int_a^b f(x)\,\mathrm{d}x + F(a)" title="\displaystyle F(b) = \int_a^b f(x)\,\mathrm{d}x + F(a)"></p></li>
+<li><p>Distinguish two Fs</p>
+<p><img src="./integration_files/chart(15)" alt="\displaystyle F(b) = \int_a^b f(x)\,\mathrm{d}x+ F_0(a)" title="\displaystyle F(b) = \int_a^b f(x)\,\mathrm{d}x+ F_0(a)"></p></li>
+</ol>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="expand...">Expand...</h1>
+<h2 id="displaystyle-ft_n-int_t_n-1t_n-fxmathrmdx-f_n-1t_n-1-f_n-2t_n-2-...-f_0t_0"><img src="./integration_files/chart(16)" alt="\displaystyle F(t_n) =\int_{t_{n-1}}^{t_n} f(x)\,\mathrm{d}x + F_{n-1}(t_{n-1}) + F_{n-2}(t_{n-2}) ... F_0(t_0)" title="\displaystyle F(t_n) =\int_{t_{n-1}}^{t_n} f(x)\,\mathrm{d}x + F_{n-1}(t_{n-1}) + F_{n-2}(t_{n-2}) ... F_0(t_0)"></h2>
+<ul>
+<li><img src="./integration_files/chart(12)" alt="F" title="F"> is of type Stream!</li>
+</ul>
+<h4 id="streams-are-straightforward">Streams are straightforward</h4>
+<pre class="sourceCode haskell"><code>type TimeDelta = Double
+data Stream a = Stream TimeDelta a (Stream a)
+instance Sample a =&gt; Sample (Stream a) where ...
+instance Num a =&gt; Num (Stream a) where...
+instance Fractional a =&gt; Fractional (Stream a) where...
+instance (Analytic a, Sample a) =&gt; Analytic (Stream a) where..
+instance Sample a =&gt; Sample (Stream a) where...
+</code></pre>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="as-is-lifting-operations-to-streams.">As is lifting operations to streams.</h1>
+<pre class="sourceCode haskell"><code>applWith f a b = go a b
+  where go sx@(Stream dtx x nx) sy@(Stream dty y ny) =
+     case compare dtx dty of
+          EQ -&gt; Stream dtx (f x y) $ go nx ny
+          GT -&gt; Stream dty (f x y) $ go (sdrop dty sx) ny
+          LT -&gt; Stream dtx (f x y) $ go nx (sdrop dtx sy)
+</code></pre>
+<p>c.f. Conal Elliot</p>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="reformulate">Reformulate</h1>
+<p><img src="./integration_files/chart" alt="y&#39; = f(x,y(x))" title="y&#39; = f(x,y(x))"></p>
+<ul>
+<li>Pointwise functions lift functorially into linear operators</li>
+</ul>
+<p><img src="./integration_files/chart(17)" alt="\displaystyle lift :: (a -&gt; a) -&gt; (\mathbb{R} -&gt; a) -&gt; (\mathbb{R} -&gt; a)" title="\displaystyle lift :: (a -&gt; a) -&gt; (\mathbb{R} -&gt; a) -&gt; (\mathbb{R} -&gt; a)"></p>
+<p><img src="./integration_files/chart(18)" alt="lift(f) = \lam x -&gt; f(x,y(x))" title="lift(f) = \lam x -&gt; f(x,y(x))"></p>
+<p><img src="./integration_files/chart(19)" alt="y&#39; = lift(f)(y)" title="y&#39; = lift(f)(y)"></p>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="extrapolate...">Extrapolate...</h1>
+<p>Given <img src="./integration_files/chart(20)" alt="F_n" title="F_n"> and <img src="./integration_files/chart(21)" alt="op" title="op"> taking <img src="./integration_files/chart(22)" alt="F_n -&gt; f_n" title="F_n -&gt; f_n">, approximate <img src="./integration_files/chart(23)" alt="F_{n+1}" title="F_{n+1}"></p>
+<p><img src="./integration_files/chart(24)" alt="op(F_{n-1}) = f_{n-1}" title="op(F_{n-1}) = f_{n-1}"></p>
+<p><img src="./integration_files/chart(25)" alt="h = t_{n} - t_{n-1}" title="h = t_{n} - t_{n-1}"></p>
+<p><img src="./integration_files/chart(26)" alt="\displaystyle F_{n} = {\int_{t_{n-1}}^{t_n} f(x)\,\mathrm{d}x} + F_{n-1}(t_{n-1})" title="\displaystyle F_{n} = {\int_{t_{n-1}}^{t_n} f(x)\,\mathrm{d}x} + F_{n-1}(t_{n-1})"></p>
+<p><img src="./integration_files/chart(27)" alt="\displaystyle F_{n} = {\int_{t_{n-1}}^{t_n} (op(F_{n-1})) }\, \mathrm{d}x} + F_{n-1}(t_{n-1})" title="\displaystyle F_{n} = {\int_{t_{n-1}}^{t_n} (op(F_{n-1})) }\, \mathrm{d}x} + F_{n-1}(t_{n-1})"></p>
+<p><img src="./integration_files/chart(28)" alt="\displaystyle F_{n} = {\int_{0}^{h} op(F_{n-1})\circ (+h) }\, \mathrm{d}x} + F_{n-1}(t_{n-1})" title="\displaystyle F_{n} = {\int_{0}^{h} op(F_{n-1})\circ (+h) }\, \mathrm{d}x} + F_{n-1}(t_{n-1})"></p>
+<ul>
+<li><p>If <img src="./integration_files/chart(21)" alt="op" title="op"> is on polynomials <em>and</em> <img src="./integration_files/chart(29)" alt="F_0" title="F_0"> is polynomial then <em>every term</em> is polynomial!</p></li>
+<li><p><img src="./integration_files/chart(12)" alt="F" title="F"> is (approximately) a coinductively defined polynomial.</p></li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="streams-of-polynomials">Streams of Polynomials</h1>
+<pre class="sourceCode haskell"><code>type PolySpline = Stream Poly
+instance {Num, Fractional, Analytic} PolySpline where...
+</code></pre>
+<pre class="sourceCode haskell"><code>instance Num PolySpline where
+   fromInteger = pure . fromInteger
+   negate = fmap negate
+   (+) = applWith (+)
+    ...
+</code></pre>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="and-we-can-run-it">And we can run it</h1>
+<pre class="sourceCode haskell"><code>expFun = splice h initExpFun $ 
+           (integ expFun' .+ (initExpFun @&gt; h)) 
+           `extrapForward` h
+    where 
+      initExpFun = pure 1
+      expFun' = expFun
+      h = 0.01
+</code></pre>
+<pre class="sourceCode haskell"><code>-- expFun @&gt; 1 = 2.71814
+-- exp 1 = 2.71828
+-- by comparison, rk3 at h of 0.01 = 2.69120
+</code></pre>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="a-graph">A graph</h1>
+<div class="figure">
+<img src="./integration_files/exp-compare.png"><p class="caption"></p>
+</div>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="wait-what">Wait, what?</h1>
+<ul>
+<li>We implemented a straightforward representation of analytic functions.</li>
+<li>We did a little math.</li>
+<li>A solver for differential equations emerged.</li>
+</ul>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="is-it-any-good">Is it any good?</h1>
+<p><img src="./integration_files/chart(28)" alt="\displaystyle F_{n} = {\int_{0}^{h} op(F_{n-1})\circ (+h) }\, \mathrm{d}x} + F_{n-1}(t_{n-1})" title="\displaystyle F_{n} = {\int_{0}^{h} op(F_{n-1})\circ (+h) }\, \mathrm{d}x} + F_{n-1}(t_{n-1})"></p>
+<ul>
+<li>Take <img src="./integration_files/chart(30)" alt="h -&gt; 0" title="h -&gt; 0">, very carefully.</li>
+<li>The error goes to zero.</li>
+<li>I.e. our solver converges.</li>
+<li>In fact, the sequence goes to this:</li>
+</ul>
+<div class="figure">
+<img src="./integration_files/Picard.png"><p class="caption"></p>
+</div>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="picard-iteration">Picard Iteration</h1>
+<ul>
+<li>Gives existence and uniqueness of a solution by the Banach fixed point theorem.</li>
+</ul>
+<p>.</p>
+<p>.</p>
+<div class="figure">
+<img src="./integration_files/picard-cap.jpeg"><p class="caption"></p>
+</div>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="another-example">Another example</h1>
+<p><img src="./integration_files/chart(31)" alt="f(x) = f&#39;&#39;(x)" title="f(x) = f&#39;&#39;(x)"></p>
+<p><img src="./integration_files/chart(32)" alt="f&#39;&#39;(x) = -f(x)" title="f&#39;&#39;(x) = -f(x)"></p>
+<p><img src="./integration_files/chart(33)" alt="f = cos" title="f = cos"></p>
+<h3 id="in-haskell">In Haskell</h3>
+<pre class="sourceCode haskell"><code>springFun = ssplice 0.1 initSpringFun $ 
+                     integ (integ springFun'') .+ (initSpringFun @&gt; 0.1)
+                     `trimmingTo` 2
+                     `extrapForward` 0.1
+   where initSpringFun = pure 1
+         springFun'' = -1 * springFun
+</code></pre>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="section"></h1>
+<h4 id="a-very-crude-polynomial-approx-vs.-precise">A very crude polynomial approx vs. precise</h4>
+<div class="figure">
+<img src="./integration_files/spring-diff.png"><p class="caption"></p>
+</div>
+<h4 id="a-tighter-euler-approx-vs.-precise">A tighter euler approx vs. precise</h4>
+<div class="figure">
+<img src="./integration_files/spring-eul.png"><p class="caption"></p>
+</div>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="tldl">TL;DL</h1>
+<div class="figure">
+<img src="./integration_files/zip-mixup.gif"><p class="caption"></p>
+</div>
+<div class="figure">
+<img src="./integration_files/bubble1.png"><p class="caption"></p>
+</div>
+<div class="figure">
+<img src="./integration_files/bubble2.png"><p class="caption"></p>
+</div>
+<br><br></div>
+<div class="slide hidden">
+<h1 id="future-work">Future work</h1>
+<h3 id="extensions">Extensions</h3>
+<ul>
+<li>Partial differential equations</li>
+<li>Delay differential equations</li>
+</ul>
+<h3 id="analysis">Analysis</h3>
+<ul>
+<li>A-Stability analysis</li>
+<li>Stiff differential equations and implicit methods</li>
+</ul>
+<h3 id="applications">Applications</h3>
+<ul>
+<li>?</li>
+<li>profit!</li>
+</ul>
+<br><br></div>
+
+
+<div class="toolbar" tabindex="0" style="display: block; "><div style="float: right; text-align: right"><span>slide n/m</span></div><div style="text-align: left"><span style="color: rgb(240, 240, 240); ">* </span><a href="http://www.w3.org/Talks/Tools/Slidy2/help/help.html" title="Navigate with mouse click, space bar, Cursor Left/Right, or Pg Up and Pg Dn. Use S and B to change font size.">help?</a> <a href="javascript:w3c_slidy.toggle_table_of_contents()" title="table of contents">contents?</a> </div></div></body></html>
