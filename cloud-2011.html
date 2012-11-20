@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Gershom Bazerman" />
+  <meta name="date" content="NY Haskell Users Group" />
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js.gz"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Putting Cloud Haskell To Work</h1>
+  <p class="author">
+Gershom Bazerman
+  </p>
+  <p class="date">NY Haskell Users Group</p>
+</div>
+<div class="slide">
+<h1 id="literate-haskell-prepared-with-pandoc">Literate Haskell, prepared with Pandoc</h1>
+<pre class="sourceCode haskell"><code>{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, 
+TupleSections, ScopedTypeVariables, TemplateHaskell #-}
+import System.Environment (getArgs)
+import Network.BSD(getHostName)
+import Control.Distributed.Static (staticClosure)
+import Control.Distributed.Process
+import Control.Distributed.Process.Serializable
+import Control.Distributed.Process.Closure
+import Control.Distributed.Process.Node hiding (newLocalNode)
+import Control.Distributed.Process.Backend.SimpleLocalnet
+import Control.Concurrent hiding (newChan)
+import qualified Control.Concurrent as C
+import Control.Monad
+import Control.Monad.State
+import Control.Applicative
+import Control.Monad.Trans
+import Data.Binary hiding (get)
+import Data.Monoid
+import Data.Typeable
+import Data.IORef
+import qualified Data.Set as S
+import qualified Data.Map as M
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="cloud-haskell-is-not...">Cloud Haskell is not...</h1>
+</div>
+<div class="slide">
+<h1 id="cloud-haskell-is-not-magic">Cloud Haskell is not Magic</h1>
+<ul>
+<li>It does not automatically parallelize anything</li>
+<li>It does not automatically configure an architecture</li>
+<li>It does not automatically mean that things don't fail</li>
+<li>It does not automatically reconfigure when things do fail</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="cloud-haskell-is-not-even-a-way-to-distribute-computation">Cloud Haskell is not even a way to distribute computation</h1>
+<ul>
+<li>It does not give you a combinator to chunk things up and recombine them</li>
+<li>It does not have a function named mapReduce, map, <em>or</em> reduce.</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="cloud-haskell-is-a-substrate-for-distributed-computation">Cloud Haskell is a substrate for distributed computation</h1>
+<ul>
+<li>It gives you a way to build many sorts of distributed computation</li>
+<li>It gives you ways to parallelize things</li>
+<li>It gives you ways to configure arbitrary architectures</li>
+<li>It gives you ways to manage and recover from failure</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="cloud-haskell-is-not-even-plumbing">Cloud Haskell is not even Plumbing</h1>
+<ul>
+<li>It is pipes and wrenches</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="distributed-computation-is-different">Distributed Computation is Different</h1>
+</div>
+<div class="slide">
+<h1 id="actors-a-la-carl-hewitt">Actors, a la Carl Hewitt</h1>
+<ul>
+<li>processing</li>
+<li>storage</li>
+<li>communication</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="quoth-sussman-and-steele">Quoth Sussman and Steele</h1>
+<p>&quot;Once we got the interpreter working correctly and had played with it for a while, writing small actors programs, we were astonished to discover that the program fragments in apply that implemented function application and actor invocation were identical!&quot;</p>
+</div>
+<div class="slide">
+<p>(The key is tail call optimization)</p>
+</div>
+<div class="slide">
+<h1 id="a-koan">A Koan</h1>
+<p>Objects are a poor man's closures. Closures are a poor man's object.</p>
+</div>
+<div class="slide">
+<h1 id="add-locality-and-theyre-all-actors.">Add locality and they're all actors.</h1>
+</div>
+<div class="slide">
+<h1 id="actors-are-good">Actors are good</h1>
+<h2 id="can-express-just-about-any-sort-of-concurrency">Can express just about any sort of concurrency</h2>
+</div>
+<div class="slide">
+<h1 id="actors-are-bad">Actors are bad</h1>
+<h2 id="can-express-just-about-any-sort-of-concurrency-1">Can express just about any sort of concurrency</h2>
+</div>
+<div class="slide">
+<h1 id="cloud-haskell-lambdas-in-the-cloud">Cloud Haskell = Lambdas in the Cloud!</h1>
+</div>
+<div class="slide">
+<p>Pay no attention</p>
+<pre class="sourceCode haskell"><code>printProcess :: String -&gt; Process ()
+printProcess s = liftIO $ putStrLn s
+</code></pre>
+<pre class="sourceCode haskell"><code>sumProcess :: (Int,Int) -&gt; Process Int
+sumProcess (x,y) = do
+  liftIO . putStrLn $ &quot;summing these: &quot; ++ show (x,y)
+  return $ x + y
+</code></pre>
+<pre class="sourceCode haskell"><code>chanProcess = do
+  sendP &lt;- expect
+  sendChan sendP &quot;message one&quot;
+  liftIO $ threadDelay 10000
+  sendChan sendP &quot;message two&quot;
+  liftIO $ threadDelay 10000
+  sendChan sendP &quot;message three&quot;
+</code></pre>
+<pre class="sourceCode haskell"><code>remotable ['printProcess,'sumProcess,'chanProcess]
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="a-program">A Program</h1>
+<pre class="sourceCode haskell"><code>main = do
+  -- Get some instructions
+  [serverType, port] &lt;- getArgs
+  -- Set up the context
+  hostName &lt;- getHostName
+  distributedContext &lt;- initializeBackend hostName port (__remoteTable initRemoteTable)
+  -- The first thing a context lets you do is create a node.
+  node &lt;- newLocalNode distributedContext
+  -- The other thing a context lets you do is find what other nodes are out there.
+  putStrLn &quot;Discovering peers&quot;
+  peers &lt;- findPeers distributedContext 2000
+  putStrLn &quot;Peers discovered&quot;
+  -- About the only thing a node lets you do is run processes on it.
+  runProcess node (go serverType distributedContext peers)
+</code></pre>
+<p>Our hierarchy is Host/Port (location) --&gt; Nodes -&gt; Processes</p>
+</div>
+<div class="slide">
+<h1 id="process-is-a-monad-and-monadio">Process is a Monad, and MonadIO</h1>
+<pre class="sourceCode haskell"><code>go :: String -&gt; Backend -&gt; [NodeId] -&gt; Process ()
+go &quot;boring&quot; dc ns = do
+  liftIO $ putStrLn &quot;IO within a process&quot;
+  return ()
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="this-process-just-hangs-out-to-keep-the-node-alive">This process just hangs out, to keep the node alive</h1>
+<pre class="sourceCode haskell"><code>go &quot;volunteer&quot; dc ns = do
+  () &lt;- expect
+  return ()
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="this-process-tells-other-nodes-to-do-stuff">This process tells other nodes to do stuff</h1>
+<pre class="sourceCode haskell"><code>go &quot;remotePrint&quot; dc ns = do
+  let tellPrint n = spawn n $ $(mkClosure 'printProcess) &quot;hi there!&quot;
+  mapM_ tellPrint ns
+  return ()
+{- printProcess s = liftIO $ putStrLn s -}
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="this-process-shouldnt-compile.-bad-cloud-haskell-bad">This process shouldn't compile. Bad cloud haskell! Bad!</h1>
+<pre class="sourceCode haskell"><code>go &quot;remotePrintBad&quot; dc ns = do
+  let tellPrint n = spawn n $ $(mkClosure 'printProcess) (123::Int)
+  -- Oh no! What happened to my static types!!!?
+  mapM_ tellPrint ns
+  return ()
+
+{- printProcess s = liftIO $ putStrLn s -}
+</code></pre>
+<p>(Like sending a text message in french to an anglophone).</p>
+</div>
+<div class="slide">
+<h1 id="this-process-tells-other-nodes-to-compute-stuff-and-return">This process tells other nodes to compute stuff and return</h1>
+<pre class="sourceCode haskell"><code>go &quot;remoteCall&quot; dc ns = do
+  let doIt n = call $(functionTDict 'sumProcess) n $ 
+                        $(mkClosure 'sumProcess) (12::Int,25::Int)
+  res &lt;- mapM doIt ns
+  liftIO $ putStrLn $ &quot;returned: &quot; ++ show res
+
+{-
+sumProcess :: (Int,Int) -&gt; Process Int
+sumProcess (x,y) = do
+  liftIO . putStrLn $ &quot;summing these: &quot; ++ show (x,y)
+  return $ x + y
+-}
+</code></pre>
+<p>Interprocess communication is always strict (the wire enforces this).</p>
+</div>
+<div class="slide">
+<h1 id="after-synchronous-and-asynchronus-computation-we-have-aynchronous-communication">After synchronous and asynchronus computation we have <em>aynchronous communication</em></h1>
+<pre class="sourceCode haskell"><code>go &quot;remoteChan&quot; dc ns = do
+  (sendP,recP) &lt;- newChan
+  let doIt n = do
+        pid &lt;- spawn n $ staticClosure $(mkStatic 'chanProcess)
+        send pid sendP
+  mapM_ doIt ns
+  forever $ liftIO . putStrLn =&lt;&lt; receiveChan recP
+
+{-
+chanProcess = do
+  sendP &lt;- expect
+  sendChan sendP &quot;message one&quot;
+  liftIO $ threadDelay 10000
+  sendChan sendP &quot;message two&quot;
+  liftIO $ threadDelay 10000
+  sendChan sendP &quot;message three&quot;
+-}
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="some-classic-concurrency-primitives">Some classic concurrency primitives</h1>
+</div>
+<div class="slide">
+<h1 id="mvars">MVars</h1>
+<pre class="sourceCode haskell"><code>newtype DMVar a = DMVar ProcessId deriving (Binary, Typeable)
+newtype MVTake = MVTake ProcessId deriving (Binary, Typeable)
+newtype MVPut a = MVPut (a,ProcessId) deriving (Binary, Typeable)
+newtype MVResponse a = MVResponse {getMVResponse :: a} deriving (Binary, Typeable)
+newtype MVSuccess = MVSuccess () deriving (Binary, Typeable)
+</code></pre>
+<pre class="sourceCode haskell"><code>newDMVar :: forall a. Serializable a =&gt; Process (DMVar a)
+newDMVar = do
+  mv &lt;- liftIO $ (newEmptyMVar :: IO (MVar a))
+  -- Note that this really is forever. No systemwide GC :-(
+  p &lt;- spawnLocal $ forever $ receiveWait 
+        [
+         -- note the extra spawnlocal
+          match $ \(MVTake pid) -&gt; spawnLocal $ 
+                       liftIO (takeMVar mv) &gt;&gt;= send pid . MVResponse
+        , match $ \(MVPut (v,pid)) -&gt; spawnLocal $
+                       liftIO (putMVar mv v) &gt;&gt; send pid (MVSuccess ())
+        ]
+  return $ DMVar p
+</code></pre>
+</div>
+<div class="slide">
+<pre class="sourceCode haskell"><code>takeDMVar :: Serializable a =&gt; DMVar a -&gt; Process a
+takeDMVar (DMVar pid) = do
+  spid &lt;- getSelfPid
+  send pid (MVTake spid)
+  link pid
+  res &lt;- getMVResponse &lt;$&gt; expect
+  unlink pid
+  return res
+</code></pre>
+<pre class="sourceCode haskell"><code>putDMVar (DMVar pid) x = do
+  spid &lt;- getSelfPid
+  send pid $ MVPut (x,spid)
+  link pid
+  MVSuccess () &lt;- expect
+  unlink pid
+  return ()
+</code></pre>
+<p>The general pattern: Process wrap state, messages interact with processes.</p>
+</div>
+<div class="slide">
+<h1 id="broadcast-channels">Broadcast Channels</h1>
+<p>Note that standard Chans have only the send end serializable</p>
+<pre class="sourceCode haskell"><code>newtype DChan a = DChan (SendPort a, ProcessId) deriving (Binary, Typeable)
+newtype DCSubscribe = DCSubscribe ProcessId deriving (Binary, Typeable)
+newtype DCDie = DCDie () deriving (Binary, Typeable)
+newtype DCResponse a = DCResponse {getDCResponse :: a} deriving (Binary, Typeable)
+</code></pre>
+<pre class="sourceCode haskell"><code>newDChan :: forall a. Serializable a =&gt; Process (DChan a)
+newDChan = do
+  (sendP,recP) &lt;- newChan
+  localChan &lt;- liftIO $ (C.newChan :: IO (C.Chan a))
+  p &lt;- spawnLocal $ getSelfPid &gt;&gt;= \mp -&gt; forever . receiveWait $
+       [
+         match $ \(DCSubscribe pid) -&gt; do
+           newChan &lt;- liftIO $ dupChan localChan
+           spawnLocal $ do
+             link pid
+             link mp
+             forever $ send pid . DCResponse =&lt;&lt; liftIO (readChan newChan)
+       , match $ \(DCDie ()) -&gt; terminate
+        ]
+  return $ DChan (sendP, p)
+
+writeDChan (DChan (sp,_)) x = sendChan sp
+</code></pre>
+</div>
+<div class="slide">
+<pre class="sourceCode haskell"><code>subscribeDChanGen (DChan (_,pid)) f = do
+  spid &lt;- getSelfPid
+  spawnLocal $ do
+    link spid
+    send pid . DCSubscribe =&lt;&lt; getSelfPid
+    forever $ f . getDCResponse =&lt;&lt; expect
+  return ()
+</code></pre>
+<pre class="sourceCode haskell"><code>subscribeDChan dc f = do
+  localChan &lt;- liftIO $ C.newChan
+  subscribeDChanGen dc (liftIO . writeChan localChan)
+  return $ readChan localChan
+</code></pre>
+<pre class="sourceCode haskell"><code>subscribeCommutativeMonoid dc f = do
+  localVar &lt;- liftIO $ newIORef mempty
+  subscribeDChanGen dc (\x -&gt; liftIO $ atomicModifyIORef localVar (\v -&gt; (v `mappend` x,())))
+  return $ readIORef localVar
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="barriers-a-la-communicating-sequential-processes">Barriers (a la Communicating Sequential Processes)</h1>
+<pre class="sourceCode haskell"><code>--Value types
+newtype DBarrier = DBarrier ProcessId deriving (Binary, Typeable)
+newtype Enrolled a = Enrolled a deriving (Binary, Typeable)
+
+-- Message types
+newtype DBSync = DBSync ProcessId deriving (Binary, Typeable)
+newtype DBEnroll = DBEnroll ProcessId deriving (Binary, Typeable) 
+newtype DBResign = DBResign ProcessId deriving (Typeable, Binary)
+newtype DBClear = DBClear () deriving (Typeable, Binary)
+</code></pre>
+<p>By the way we can use strings instead of newtypes</p>
+</div>
+<div class="slide">
+<pre class="sourceCode haskell"><code>newDBarrier = do
+</code></pre>
+<pre class="sourceCode haskell"><code>  enrolledSet &lt;- liftIO $ newMVar (S.empty :: S.Set ProcessId, 
+                                   S.empty :: S.Set ProcessId, 
+                                   M.empty :: M.Map ProcessId MonitorRef)
+</code></pre>
+<pre class="sourceCode haskell"><code>  let resign pid = do
+          mr &lt;- liftIO . modifyMVar enrolledSet $ \(enrolled,synced,mrmap) -&gt; 
+                   return ((S.delete pid enrolled,
+                            S.delete pid synced,
+                            M.delete pid mrmap), 
+                           M.lookup pid mrmap)
+          maybe (return ()) unmonitor mr
+</code></pre>
+<pre class="sourceCode haskell"><code>  p &lt;- spawnLocal $ forever . receiveWait $
+       [
+         match $ \(DBEnroll pid) -&gt; do
+           mr &lt;- monitor pid
+           liftIO . modifyMVar_ enrolledSet $ \(enrolled,synced,mrmap) -&gt; 
+                  return (S.insert pid enrolled,
+                          synced,
+                          M.insert pid mr mrmap),
+         match $ \(DBSync pid) -&gt; do
+             releaseList &lt;- liftIO . modifyMVar enrolledSet $ 
+               \(enrolled,synced,mrmap) -&gt; 
+                      let synced' = S.insert pid synced 
+                      in return $
+                          if enrolled == synced' 
+                            then ((enrolled,S.empty,mrmap),synced') 
+                            else ((enrolled,synced',mrmap),S.empty)
+             mapM_ (`send` DBClear ()) $ S.toList releaseList,
+         match $ \(DBResign pid) -&gt; resign pid,
+         match $ \(ProcessMonitorNotification mr pid dr) -&gt; resign pid
+        ]
+  return $ DBarrier p
+</code></pre>
+</div>
+<div class="slide">
+<pre class="sourceCode haskell"><code>dbEnroll db@(DBarrier pid) = do
+  spid &lt;- getSelfPid
+  send pid (DBEnroll spid)
+  return $ Enrolled db
+</code></pre>
+<pre class="sourceCode haskell"><code>dbSync (Enrolled db@(DBarrier pid)) = do
+  spid &lt;- getSelfPid
+  send pid $ DBSync spid
+  link pid
+  DBClear () &lt;- expect
+  unlink pid
+  return db
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="monads-for-consistent-distributed-traces">Monads for consistent distributed traces</h1>
+<pre class="sourceCode haskell"><code>-- A Lamport Clock is a simple logical clock
+-- It tracks an abstract notion of time, not wall-clock time.
+-- Every clock has a time and a location (process).
+newtype LamportClock = LamportClock (Integer, ProcessId) 
+   deriving (Eq, Ord, Binary, Typeable)
+
+-- When a clock sees the state of another clock, it sets its time
+-- to be greater than the max of the two times.
+updateClock :: LamportClock -&gt; LamportClock -&gt; LamportClock
+updateClock (LamportClock (xi, xpid)) (LamportClock (yi,_)) = 
+       LamportClock (max xi yi + 1, xpid)
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="a-lamport-monad">A Lamport Monad</h1>
+<pre class="sourceCode haskell"><code>newtype LamProcess a = LamProcess (StateT LamportClock Process a) 
+    deriving (Functor, Applicative, Monad)
+</code></pre>
+<pre class="sourceCode haskell"><code>getClock = LamProcess get
+incrClock = LamProcess . modify $ \(LamportClock (xi,xpid)) -&gt; 
+                  LamportClock (xi+1,xpid)
+</code></pre>
+<pre class="sourceCode haskell"><code>-- Only safe for lifting single message primitives.
+liftP :: Process a -&gt; LamProcess a
+liftP x = incrClock &gt;&gt; LamProcess (lift x) 
+</code></pre>
+<pre class="sourceCode haskell"><code>-- IO doesn't increment clock
+instance MonadIO LamProcess where
+   liftIO x = LamProcess $ lift . liftIO $ x
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="some-lifted-primitives">Some lifted primitives</h1>
+<pre class="sourceCode haskell"><code>lsend :: Serializable a =&gt; ProcessId -&gt; a -&gt; LamProcess ()
+lsend pid x = getClock &gt;&gt;= \c -&gt; liftP $ send pid (c,x)
+</code></pre>
+<pre class="sourceCode haskell"><code>lexpectClocked :: forall a. Serializable a =&gt; LamProcess (LamportClock,a)
+lexpectClocked = liftP expect &gt;&gt;= \(c,x) -&gt; LamProcess $ 
+                      modify (updateClock c) &gt;&gt; return (c,x)
+</code></pre>
+<pre class="sourceCode haskell"><code>lexpect :: forall a. Serializable a =&gt; LamProcess a
+lexpect = snd &lt;$&gt; lexpectClocked
+</code></pre>
+<ul>
+<li>if A before B then timestamp at A &lt; timestamp at B</li>
+<li>if timestamp A &gt; timestamp B then A did not happen before B</li>
+<li>same tricks work for vector clocks</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="what-we-dont-have">What we don't have</h1>
+<ul>
+<li>Logging trees (aka distributed logging) (lamports help)</li>
+<li>Supervision (Monitoring is halfway there)</li>
+<li>Out-of-process supervision (i.e. FFI code)</li>
+<li>Code swapping (Supervision takes you halfway there) [Out of scope]</li>
+<li>Core monitoring functionality / pluggable, inspectable servers.</li>
+<li>Interactive, interruptable, resumable computation (lisp style)</li>
+<li>Full sets of concurrency models -- CSP, Orc, etc.</li>
+<li>Classic algos -- Vector Clocks, Paxos, etc.</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="in-conclusion">In conclusion:</h1>
+<p>This old gem:</p>
+<div class="figure">
+<img src="threechords.jpg" title="chords" alt="punk!" /><p class="caption">punk!</p>
+</div>
+</div>
+<div class="slide">
+<ul>
+<li>This is lambda abstraction</li>
+<li>This is application</li>
+<li>This is distribution</li>
+</ul>
+<p>Now go and write some programs!</p>
+</div>
+<div class="slide">
+<h1 id="junk">Junk</h1>
+<p>linking, monitoring, async api/futures orc on top of it or CHP semantics</p>
+<p>-- a byteport is like a typed channel except it cheats! --hmm just use a chan. -- write a byteport first.</p>
+<pre class="sourceCode haskell"><code>{-
+sendBytes them msg = do
+  proc &lt;- ask
+  liftIO $ sendPayload (processNode proc)
+                       (processIdentifier (processId proc))
+                       (processIdentifier them)
+                       NoImplicitReconnect
+                       msg
+-}
+</code></pre>
+</div>
+</body>
+</html>
