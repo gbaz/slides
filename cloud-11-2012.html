@@ -469,20 +469,5 @@ lexpect = snd &lt;$&gt; lexpectClocked
 </ul>
 <p>Now go and write some programs!</p>
 </div>
-<div class="slide">
-<h1 id="junk">Junk</h1>
-<p>linking, monitoring, async api/futures orc on top of it or CHP semantics</p>
-<p>-- a byteport is like a typed channel except it cheats! --hmm just use a chan. -- write a byteport first.</p>
-<pre class="sourceCode haskell"><code>{-
-sendBytes them msg = do
-  proc &lt;- ask
-  liftIO $ sendPayload (processNode proc)
-                       (processIdentifier (processId proc))
-                       (processIdentifier them)
-                       NoImplicitReconnect
-                       msg
--}
-</code></pre>
-</div>
 </body>
 </html>
