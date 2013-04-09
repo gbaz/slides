@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Gershom Bazerman" />
+  <meta name="date" content="Bay Area Haskell Users Group" />
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js.gz"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">JMacro and Layered Abstractions</h1>
+  <p class="author">
+Gershom Bazerman
+  </p>
+  <p class="date">Bay Area Haskell Users Group</p>
+</div>
+<div class="slide">
+<h1 id="or-writing-haskell-to-write-javascript-to-call-haskell-with">Or: Writing Haskell to write JavaScript to call Haskell with</h1>
+<p>Prepared with Pandoc</p>
+</div>
+<div class="slide">
+<h1 id="the-javascript-problem">&quot;The JavaScript Problem&quot;</h1>
+<p>JavaScript is:</p>
+<ul>
+<li>Untyped</li>
+<li>Weirdly Scoped</li>
+<li>Ugly</li>
+<li>Dynamic</li>
+</ul>
+</div>
+<div class="slide">
+<p>JavaScript is also:</p>
+<ul>
+<li>Full of libraries</li>
+<li>Higher order</li>
+<li>Essential</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="represenation-space">Represenation Space</h1>
+<ul>
+<li>Strings</li>
+<li>AST</li>
+<li>Combinators / Embedded DSL</li>
+<li>Languge / Exernal DSL</li>
+<li>AJAX Server Framework</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="jmacro">JMacro</h1>
+<p>AST <em>and</em> Embedded DSL <em>and</em> External DSL <em>and</em> AJAX Framework <em>and</em> Other AJAX Framework!</p>
+<p>Comes with a set of steak knifes.</p>
+<p>Built with a tower of abstractions.</p>
+</div>
+<div class="slide">
+<h1 id="typing-space">Typing space</h1>
+<ul>
+<li>No Typing</li>
+<li>Embedded Typing</li>
+<li>External Typing</li>
+</ul>
+<p>And...</p>
+<ul>
+<li>Type some things, all of the time.</li>
+<li>Type some things, some of the time.</li>
+<li>Type all the things!</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="expressiveness-vs.-safety">Expressiveness vs. Safety</h1>
+<ul>
+<li>Types are good</li>
+<li><p><em>But</em> common libraries have insane types</p></li>
+<li>Functional is good</li>
+<li><p><em>But</em> common libraries are mutatey.</p></li>
+<li>Other languages are better than JS</li>
+<li><p><em>But</em> you need to FFI to JS</p></li>
+<li>Full compilers are powerful</li>
+<li><p><em>But</em> it's hard to interop with Haskell</p></li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="jmacro-1">JMacro</h1>
+<p>Privilages full expressiveness</p>
+<p><em>But</em> provides foundations for restrictive subsets</p>
+<p>(Not typeful, but able to be retrofitted for types)</p>
+</div>
+<div class="slide">
+<h1 id="where-we-started">Where we started</h1>
+<ul>
+<li>Plain JS Includes and string calls</li>
+<li>But strings grew and got unwieldy</li>
+<li>HJavaScript -- either <em>too</em> typed or <em>wrongly</em> typed</li>
+<li>Untyped AST Combinators</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="name-representation">Name Representation</h1>
+<ul>
+<li>Bad old days I did PHP, JSP, etc.</li>
+<li>Use the same block twice in a page.</li>
+<li>But <em>don't</em> steal names.</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="approaches-to-names">Approaches to Names</h1>
+<ul>
+<li>Explicit (with a supply)</li>
+<li>DeBruijn</li>
+<li>HOAS (overload names in the host language)</li>
+</ul>
+</div>
+<div class="slide">
+<h1 id="jmacro-2">JMacro</h1>
+<ul>
+<li>Typeclasses + State Monad + Lambdas = HOAS/Explicit</li>
+<li>More convenient than HOAS</li>
+<li>Safer than Explicit</li>
+</ul>
+<pre class="sourceCode haskell"><code>newtype IdentSupply a = IS {runIdentSupply :: State [Ident] a}
+
+data JStat = ReturnStat JExpr
+           | AssignStat JExpr JExpr
+           | UnsatBlock (IdentSupply JStat)
+             ...
+</code></pre>
+<p>Lambdas don't take a name, they take an name <em>supply</em>.</p>
+<p>Allows us to mix named and nameless styles, allows us to write n-ary functions.</p>
+</div>
+<div class="slide">
+<h1 id="typeclass-sugar">Typeclass sugar</h1>
+<pre class="sourceCode haskell"><code>class ToSat a where
+    toSat_ :: a -&gt; [Ident] -&gt; IdentSupply (JStat, [Ident])
+
+instance ToSat JStat where
+   toSat_ f vs = IS $ return $ (f, reverse vs)
+
+instance (ToSat a, b ~ JExpr) =&gt; ToSat (b -&gt; a) where
+    toSat_ f vs = IS $ do
+      x &lt;- freshName
+      runIdentSupply $ toSat_ (f (ValExpr $ JVar x)) (x:vs)
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="usage">Usage</h1>
+<pre class="sourceCode haskell"><code>jLam :: (ToSat a) =&gt; a -&gt; JExpr
+jLam f = ValExpr . UnsatVal . IS $ do
+           (block,is) &lt;- runIdentSupply $ toSat_ f []
+           return $ JFunc is block
+</code></pre>
+<pre class="sourceCode haskell"><code>jlam $ \ x y z -&gt; x + y + z :: JExpr
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="marshalling">Marshalling</h1>
+<p>Splice Haskell values into JavaScript</p>
+<pre class="sourceCode haskell"><code>class ToJExpr a where
+   toJExpr :: a -&gt; JExpr
+   toJExprFromList :: [a] -&gt; JExpr -- &lt;- show hack
+   toJExprFromList = ValExpr . JList . map toJExpr
+
+instance ToJExpr Bool where
+   toJExpr True  = jsv &quot;true&quot;
+   toJExpr False = jsv &quot;false&quot;
+
+instance ToJExpr Char where
+   toJExpr = ValExpr . JStr . (:[])
+   toJExprFromList = ValExpr . JStr
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="this-was-phase-one">This was Phase One</h1>
+<ul>
+<li>Syntax safety</li>
+<li>Name safety</li>
+<li>Embedded combinators</li>
+<li>Marshalling</li>
+</ul>
+<p>... But it was <em>ugly</em></p>
+<p>... And in a .hs file, we kept accidentally writing Haskell.</p>
+</div>
+<div class="slide">
+<h1 id="and-so">And so</h1>
+<p>A parser was born</p>
+<p>Started parsing JavaScript</p>
+<p>Began parsing &quot;Haskell&quot;</p>
+<p>Now can parse almost all JavaScript <em>and</em> a fair number of FP idioms</p>
+<p>Combinators parsers are great for exploratory syntax development.</p>
+</div>
+<div class="slide">
+<h1 id="next-antiquotation">Next, Antiquotation</h1>
+<pre class="sourceCode haskell"><code>...
+  | AntiStat String
+...
+
+\x -&gt; [jmacroE| `(x)` + 5|]
+</code></pre>
+<p>Haskell variables can be used in JavaScript.</p>
+<p>The x in the antiquote is the x from the lambda. (A var name, or <em>any</em> instance of ToJExpr)</p>
+</div>
+<div class="slide">
+<h1 id="something-unexpected-emerges">Something unexpected emerges</h1>
+<p>And...</p>
+<pre class="sourceCode haskell"><code>[jmacroE| \x -&gt; `(generateWith x)` |]
+</code></pre>
+<p>JavaScript variables (names) can be used in Haskell!</p>
+</div>
+<div class="slide">
+<p>Tron went through the wall.</p>
+<p>Powerful abstractions generate more than you put in.</p>
+</div>
+<div class="slide">
+<h1 id="we-lived-with-postbacks-for-as-long-as-we-could-bear">We lived with postbacks for as long as we could bear</h1>
+<p>But then, jmacro-rpc was born.</p>
+<p>jmacro-rpc provides json rpcs</p>
+<p>(details elided)</p>
+<pre class="sourceCode haskell"><code>-- | A JSON request is a list of values
+type JRequest  = [Value]
+
+-- | A JSON result is either an error or a value.
+type JResult = Either String Value
+
+-- | A JsonRPC is a named function that takes a handle to some state, and
+-- yields a function from request to result in some monad.
+-- It is a representation of the server side of an RPC call.
+data JsonRPC m s = JsonRPC String (s -&gt; JRequest -&gt; m JResult)
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="serve-and-call-rpcs-from-haskell">Serve and call RPCs from Haskell</h1>
+<pre class="sourceCode haskell"><code>-- Pack functions as RPCs
+toJsonRPC :: ToJsonRPC a m =&gt; String -&gt; a -&gt; JsonRPC m ()
+toJsonRPC nm f = JsonRPC nm $ \() -&gt; toJsonRPC_ f
+
+toJsonConvRPC :: ToJsonRPC a m =&gt; String -&gt; (s -&gt; a) -&gt; JsonRPC m s
+toJsonConvRPC nm f = JsonRPC nm (\s -&gt; toJsonRPC_ (f s))
+</code></pre>
+<pre class="sourceCode haskell"><code>-- Encode signatures as RPC Stubs
+class ToJsonRPCCall a b | a -&gt; b where
+   toJsonRPCCall_ :: [Value] -&gt; a -&gt; b
+
+instance (ToJSON a, ToJsonRPCCall b c) =&gt; ToJsonRPCCall (a -&gt; b) (a -&gt; c) where
+   toJsonRPCCall_ xs f = \x -&gt; toJsonRPCCall_ (toJSON x : xs) (f x)
+
+instance ... (base case)
+
+toJsonRPCCall :: ToJsonRPCCall a b =&gt; a -&gt; b
+...
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="call-rpcs-from-javascript">Call RPCs from JavaScript!</h1>
+<pre class="sourceCode haskell"><code>jsonRPCToDecl :: JsonRPC a m -&gt; JStat
+jsonRPCToDecl (JsonRPC n _) =
+             BlockStat [
+                    DeclStat (StrI n) Nothing,
+                    AssignStat (ValExpr $ JVar $ StrI n)
+                                   [jmacroE|\ {
+                                      var a = Array.prototype.slice.call(arguments);
+                                      return (invokeJsonRPC (serverLoc + &quot;jrpcs&quot;) `(n)` a);
+                                    }
+                                    |]
+          ]
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="serve-rpcs-over-the-web">Serve RPCs over the web</h1>
+<pre class="sourceCode haskell"><code>serveRpcs :: MonadSnap m =&gt; (Int -&gt; m s) -&gt; [JsonRPC m s] -&gt; m ()
+</code></pre>
+<p>Serve a page and associated RPCs at once</p>
+<pre class="sourceCode haskell"><code>-- Generalized version
+handleRpcs :: (Functor m, Monad m) =&gt; (Int -&gt; m s) -&gt;
+              [JsonRPC m s] -&gt; BL.ByteString -&gt; m BL.ByteString
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="serve-stateful-conversations-over-the-web">Serve stateful conversations over the web</h1>
+<pre class="sourceCode haskell"><code>mkConversationPageSimple :: (MonadSnap m) =&gt; (JStat -&gt; m ()) -&gt; IO s -&gt; [JsonRPC m s] -&gt; IO (m ())
+</code></pre>
+<p>We can write asynchronous RPCs on top of synchronous ones. We can have global state or session state or page local state.</p>
+<pre class="sourceCode haskell"><code>-- Generalized version
+mkConversationPageGen :: (MonadIO m1, MonadIO m) =&gt;
+                            IO timestamp
+                            -&gt; (IM.IntMap (timestamp,s) -&gt; IO (IM.IntMap (timestamp,s)))
+                            -&gt; ((Int -&gt; m s) -&gt; [JsonRPC m s] -&gt; m1 resp)
+                            -&gt; (JStat -&gt; m1 resp)
+                            -&gt; IO s
+                            -&gt; [JsonRPC m s]
+                            -&gt; IO (m1 resp, m1 resp)
+</code></pre>
+<p>Generality through higher order functions, straightforward composition</p>
+<pre class="sourceCode haskell"><code>mkConversationPage getStamp cullMap pageFun emptyState rpcs =
+         (\(rpcPage, mainPage) -&gt; dir (B.pack &quot;jrpcs&quot;) rpcPage &lt;|&gt; mainPage) &lt;$&gt;
+         mkConversationPageGen getStamp cullMap serveRpcs pageFun emptyState rpcs
+</code></pre>
+</div>
+<div class="slide">
+<h1 id="panels-reactivity-the-future">Panels, Reactivity, The Future</h1>
+</div>
+</body>
+</html>
