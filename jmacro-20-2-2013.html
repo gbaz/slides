@@ -1,12 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="Gershom Bazerman" />
-  <meta name="date" content="Bay Area Haskell Users Group" />
+  <title>JMacro and Layered Abstractions</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
   <link rel="stylesheet" type="text/css" media="screen, projection, print"
     href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
   <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js.gz"
@@ -20,12 +41,12 @@ Gershom Bazerman
   </p>
   <p class="date">Bay Area Haskell Users Group</p>
 </div>
-<div class="slide">
-<h1 id="or-writing-haskell-to-write-javascript-to-call-haskell-with">Or: Writing Haskell to write JavaScript to call Haskell with</h1>
+<div class="section slide level1" id="or-writing-haskell-to-write-javascript-to-call-haskell-with">
+<h1>Or: Writing Haskell to write JavaScript to call Haskell with</h1>
 <p>Prepared with Pandoc</p>
 </div>
-<div class="slide">
-<h1 id="the-javascript-problem">&quot;The JavaScript Problem&quot;</h1>
+<div class="section slide level1" id="the-javascript-problem">
+<h1>&quot;The JavaScript Problem&quot;</h1>
 <p>JavaScript is:</p>
 <ul>
 <li>Untyped</li>
@@ -34,7 +55,8 @@ Gershom Bazerman
 <li>Dynamic</li>
 </ul>
 </div>
-<div class="slide">
+<div class="section slide level1">
+
 <p>JavaScript is also:</p>
 <ul>
 <li>Full of libraries</li>
@@ -42,8 +64,8 @@ Gershom Bazerman
 <li>Essential</li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="represenation-space">Represenation Space</h1>
+<div class="section slide level1" id="represenation-space">
+<h1>Represenation Space</h1>
 <ul>
 <li>Strings</li>
 <li>AST</li>
@@ -52,14 +74,14 @@ Gershom Bazerman
 <li>AJAX Server Framework</li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="jmacro">JMacro</h1>
+<div class="section slide level1" id="jmacro">
+<h1>JMacro</h1>
 <p>AST <em>and</em> Embedded DSL <em>and</em> External DSL <em>and</em> AJAX Framework <em>and</em> Other AJAX Framework!</p>
 <p>Comes with a set of steak knifes.</p>
 <p>Built with a tower of abstractions.</p>
 </div>
-<div class="slide">
-<h1 id="typing-space">Typing space</h1>
+<div class="section slide level1" id="typing-space">
+<h1>Typing space</h1>
 <ul>
 <li>No Typing</li>
 <li>Embedded Typing</li>
@@ -72,8 +94,8 @@ Gershom Bazerman
 <li>Type all the things!</li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="expressiveness-vs.-safety">Expressiveness vs. Safety</h1>
+<div class="section slide level1" id="expressiveness-vs.-safety">
+<h1>Expressiveness vs. Safety</h1>
 <ul>
 <li>Types are good</li>
 <li><p><em>But</em> common libraries have insane types</p></li>
@@ -85,14 +107,14 @@ Gershom Bazerman
 <li><p><em>But</em> it's hard to interop with Haskell</p></li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="jmacro-1">JMacro</h1>
+<div class="section slide level1" id="jmacro-1">
+<h1>JMacro</h1>
 <p>Privilages full expressiveness</p>
 <p><em>But</em> provides foundations for restrictive subsets</p>
 <p>(Not typeful, but able to be retrofitted for types)</p>
 </div>
-<div class="slide">
-<h1 id="where-we-started">Where we started</h1>
+<div class="section slide level1" id="where-we-started">
+<h1>Where we started</h1>
 <ul>
 <li>Plain JS Includes and string calls</li>
 <li>But strings grew and got unwieldy</li>
@@ -100,82 +122,77 @@ Gershom Bazerman
 <li>Untyped AST Combinators</li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="name-representation">Name Representation</h1>
+<div class="section slide level1" id="name-representation">
+<h1>Name Representation</h1>
 <ul>
 <li>Bad old days I did PHP, JSP, etc.</li>
 <li>Use the same block twice in a page.</li>
 <li>But <em>don't</em> steal names.</li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="approaches-to-names">Approaches to Names</h1>
+<div class="section slide level1" id="approaches-to-names">
+<h1>Approaches to Names</h1>
 <ul>
 <li>Explicit (with a supply)</li>
 <li>DeBruijn</li>
 <li>HOAS (overload names in the host language)</li>
 </ul>
 </div>
-<div class="slide">
-<h1 id="jmacro-2">JMacro</h1>
+<div class="section slide level1" id="jmacro-2">
+<h1>JMacro</h1>
 <ul>
 <li>Typeclasses + State Monad + Lambdas = HOAS/Explicit</li>
 <li>More convenient than HOAS</li>
 <li>Safer than Explicit</li>
 </ul>
-<pre class="sourceCode haskell"><code>newtype IdentSupply a = IS {runIdentSupply :: State [Ident] a}
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">IdentSupply</span> a <span class="fu">=</span> <span class="dt">IS</span> {<span class="ot">runIdentSupply ::</span> <span class="dt">State</span> [<span class="dt">Ident</span>] a}
 
-data JStat = ReturnStat JExpr
-           | AssignStat JExpr JExpr
-           | UnsatBlock (IdentSupply JStat)
-             ...
-</code></pre>
+<span class="kw">data</span> <span class="dt">JStat</span> <span class="fu">=</span> <span class="dt">ReturnStat</span> <span class="dt">JExpr</span>
+           <span class="fu">|</span> <span class="dt">AssignStat</span> <span class="dt">JExpr</span> <span class="dt">JExpr</span>
+           <span class="fu">|</span> <span class="dt">UnsatBlock</span> (<span class="dt">IdentSupply</span> <span class="dt">JStat</span>)
+             <span class="fu">...</span></code></pre>
 <p>Lambdas don't take a name, they take an name <em>supply</em>.</p>
 <p>Allows us to mix named and nameless styles, allows us to write n-ary functions.</p>
 </div>
-<div class="slide">
-<h1 id="typeclass-sugar">Typeclass sugar</h1>
-<pre class="sourceCode haskell"><code>class ToSat a where
-    toSat_ :: a -&gt; [Ident] -&gt; IdentSupply (JStat, [Ident])
+<div class="section slide level1" id="typeclass-sugar">
+<h1>Typeclass sugar</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">ToSat</span> a <span class="kw">where</span>
+<span class="ot">    toSat_ ::</span> a <span class="ot">-&gt;</span> [<span class="dt">Ident</span>] <span class="ot">-&gt;</span> <span class="dt">IdentSupply</span> (<span class="dt">JStat</span>, [<span class="dt">Ident</span>])
 
-instance ToSat JStat where
-   toSat_ f vs = IS $ return $ (f, reverse vs)
+<span class="kw">instance</span> <span class="dt">ToSat</span> <span class="dt">JStat</span> <span class="kw">where</span>
+   toSat_ f vs <span class="fu">=</span> <span class="dt">IS</span> <span class="fu">$</span> <span class="fu">return</span> <span class="fu">$</span> (f, <span class="fu">reverse</span> vs)
 
-instance (ToSat a, b ~ JExpr) =&gt; ToSat (b -&gt; a) where
-    toSat_ f vs = IS $ do
-      x &lt;- freshName
-      runIdentSupply $ toSat_ (f (ValExpr $ JVar x)) (x:vs)
-</code></pre>
+<span class="kw">instance</span> (<span class="dt">ToSat</span> a, b <span class="fu">~</span> <span class="dt">JExpr</span>) <span class="ot">=&gt;</span> <span class="dt">ToSat</span> (b <span class="ot">-&gt;</span> a) <span class="kw">where</span>
+    toSat_ f vs <span class="fu">=</span> <span class="dt">IS</span> <span class="fu">$</span> <span class="kw">do</span>
+      x <span class="ot">&lt;-</span> freshName
+      runIdentSupply <span class="fu">$</span> toSat_ (f (<span class="dt">ValExpr</span> <span class="fu">$</span> <span class="dt">JVar</span> x)) (x<span class="fu">:</span>vs)</code></pre>
 </div>
-<div class="slide">
-<h1 id="usage">Usage</h1>
-<pre class="sourceCode haskell"><code>jLam :: (ToSat a) =&gt; a -&gt; JExpr
-jLam f = ValExpr . UnsatVal . IS $ do
-           (block,is) &lt;- runIdentSupply $ toSat_ f []
-           return $ JFunc is block
-</code></pre>
-<pre class="sourceCode haskell"><code>jlam $ \ x y z -&gt; x + y + z :: JExpr
-</code></pre>
+<div class="section slide level1" id="usage">
+<h1>Usage</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">jLam ::</span> (<span class="dt">ToSat</span> a) <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">JExpr</span>
+jLam f <span class="fu">=</span> <span class="dt">ValExpr</span> <span class="fu">.</span> <span class="dt">UnsatVal</span> <span class="fu">.</span> <span class="dt">IS</span> <span class="fu">$</span> <span class="kw">do</span>
+           (block,is) <span class="ot">&lt;-</span> runIdentSupply <span class="fu">$</span> toSat_ f []
+           <span class="fu">return</span> <span class="fu">$</span> <span class="dt">JFunc</span> is block</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">jlam <span class="fu">$</span> \ x y z <span class="ot">-&gt;</span> x <span class="fu">+</span> y <span class="fu">+</span><span class="ot"> z ::</span> <span class="dt">JExpr</span></code></pre>
 </div>
-<div class="slide">
-<h1 id="marshalling">Marshalling</h1>
+<div class="section slide level1" id="marshalling">
+<h1>Marshalling</h1>
 <p>Splice Haskell values into JavaScript</p>
-<pre class="sourceCode haskell"><code>class ToJExpr a where
-   toJExpr :: a -&gt; JExpr
-   toJExprFromList :: [a] -&gt; JExpr -- &lt;- show hack
-   toJExprFromList = ValExpr . JList . map toJExpr
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">ToJExpr</span> a <span class="kw">where</span>
+<span class="ot">   toJExpr ::</span> a <span class="ot">-&gt;</span> <span class="dt">JExpr</span>
+<span class="ot">   toJExprFromList ::</span> [a] <span class="ot">-&gt;</span> <span class="dt">JExpr</span> <span class="co">-- &lt;- show hack</span>
+   toJExprFromList <span class="fu">=</span> <span class="dt">ValExpr</span> <span class="fu">.</span> <span class="dt">JList</span> <span class="fu">.</span> <span class="fu">map</span> toJExpr
 
-instance ToJExpr Bool where
-   toJExpr True  = jsv &quot;true&quot;
-   toJExpr False = jsv &quot;false&quot;
+<span class="kw">instance</span> <span class="dt">ToJExpr</span> <span class="dt">Bool</span> <span class="kw">where</span>
+   toJExpr <span class="kw">True</span>  <span class="fu">=</span> jsv <span class="st">&quot;true&quot;</span>
+   toJExpr <span class="kw">False</span> <span class="fu">=</span> jsv <span class="st">&quot;false&quot;</span>
 
-instance ToJExpr Char where
-   toJExpr = ValExpr . JStr . (:[])
-   toJExprFromList = ValExpr . JStr
-</code></pre>
+<span class="kw">instance</span> <span class="dt">ToJExpr</span> <span class="dt">Char</span> <span class="kw">where</span>
+   toJExpr <span class="fu">=</span> <span class="dt">ValExpr</span> <span class="fu">.</span> <span class="dt">JStr</span> <span class="fu">.</span> (<span class="fu">:</span>[])
+   toJExprFromList <span class="fu">=</span> <span class="dt">ValExpr</span> <span class="fu">.</span> <span class="dt">JStr</span></code></pre>
 </div>
-<div class="slide">
-<h1 id="this-was-phase-one">This was Phase One</h1>
+<div class="section slide level1" id="this-was-phase-one">
+<h1>This was Phase One</h1>
 <ul>
 <li>Syntax safety</li>
 <li>Name safety</li>
@@ -185,123 +202,157 @@ instance ToJExpr Char where
 <p>... But it was <em>ugly</em></p>
 <p>... And in a .hs file, we kept accidentally writing Haskell.</p>
 </div>
-<div class="slide">
-<h1 id="and-so">And so</h1>
+<div class="section slide level1" id="and-so">
+<h1>And so</h1>
 <p>A parser was born</p>
 <p>Started parsing JavaScript</p>
 <p>Began parsing &quot;Haskell&quot;</p>
 <p>Now can parse almost all JavaScript <em>and</em> a fair number of FP idioms</p>
 <p>Combinators parsers are great for exploratory syntax development.</p>
 </div>
-<div class="slide">
-<h1 id="next-antiquotation">Next, Antiquotation</h1>
-<pre class="sourceCode haskell"><code>...
-  | AntiStat String
-...
+<div class="section slide level1" id="some-sample-code">
+<h1>Some sample code</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">   fun <span class="fu">foldl</span> f v xs {
+       var acc <span class="fu">=</span> v;
+       for( var i <span class="fu">=</span> <span class="dv">0</span>; i <span class="fu">&lt;</span> xs<span class="fu">.length</span>; i<span class="fu">++</span>) {acc <span class="fu">=</span> f acc xs[i];};
+       <span class="fu">return</span> acc;
+   };
 
-\x -&gt; [jmacroE| `(x)` + 5|]
-</code></pre>
+   fun <span class="fu">map</span> f xs <span class="ot">-&gt;</span> <span class="fu">foldl</span> (\acc x {acc<span class="fu">.</span>push(f x); <span class="fu">return</span> acc}) [] xs;
+
+   fun minimumBy cmp xs <span class="ot">-&gt;</span>
+      <span class="fu">foldl</span> (\x y <span class="ot">-&gt;</span> cmp x y <span class="fu">?</span> x <span class="fu">:</span> y) (xs[<span class="dv">0</span>]) xs<span class="fu">.</span>slice(<span class="dv">1</span>);</code></pre>
+</div>
+<div class="section slide level1" id="next-antiquotation">
+<h1>Next, Antiquotation</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="fu">...</span>
+  <span class="fu">|</span> <span class="dt">AntiStat</span> <span class="dt">String</span>
+<span class="fu">...</span>
+
+\x <span class="ot">-&gt;</span> [jmacroE<span class="fu">|</span> <span class="ot">`(x)`</span> <span class="fu">+</span> <span class="dv">5</span><span class="fu">|</span>]</code></pre>
 <p>Haskell variables can be used in JavaScript.</p>
 <p>The x in the antiquote is the x from the lambda. (A var name, or <em>any</em> instance of ToJExpr)</p>
 </div>
-<div class="slide">
-<h1 id="something-unexpected-emerges">Something unexpected emerges</h1>
+<div class="section slide level1" id="something-unexpected-emerges">
+<h1>Something unexpected emerges</h1>
 <p>And...</p>
-<pre class="sourceCode haskell"><code>[jmacroE| \x -&gt; `(generateWith x)` |]
-</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">[jmacroE<span class="fu">|</span> \x <span class="ot">-&gt;</span> <span class="ot">`(generateWith x)`</span> <span class="fu">|</span>]</code></pre>
 <p>JavaScript variables (names) can be used in Haskell!</p>
 </div>
-<div class="slide">
+<div class="section slide level1">
+
 <p>Tron went through the wall.</p>
 <p>Powerful abstractions generate more than you put in.</p>
 </div>
-<div class="slide">
-<h1 id="we-lived-with-postbacks-for-as-long-as-we-could-bear">We lived with postbacks for as long as we could bear</h1>
+<div class="section slide level1" id="examples">
+<h1>Examples</h1>
+<p>ghcjs</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">genPrim <span class="dt">IndexByteArrayOp_Float</span> [r] [a,i] <span class="fu">=</span>
+     <span class="dt">PrimInline</span> [j<span class="fu">|</span> <span class="ot">`r`</span> <span class="fu">=</span> <span class="ot">`a`</span><span class="fu">.</span>getFloat32(<span class="ot">`i`</span><span class="fu">&lt;&lt;</span><span class="dv">2</span>); <span class="fu">|</span>]
+genPrim <span class="dt">IndexByteArrayOp_Double</span> [r] [a,i] <span class="fu">=</span>
+     <span class="dt">PrimInline</span> [j<span class="fu">|</span> <span class="ot">`r`</span> <span class="fu">=</span> <span class="ot">`a`</span><span class="fu">.</span>getFloat64(<span class="ot">`i`</span><span class="fu">&lt;&lt;</span><span class="dv">3</span>); <span class="fu">|</span>]</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">genToplevelRhs i (<span class="dt">StgRhsClosure</span> _cc _bi [] upd_flag _srt args body) <span class="fu">=</span>
+   toplevel <span class="fu">&lt;$&gt;</span> <span class="kw">do</span>
+      <span class="fu">...</span>
+      <span class="fu">return</span> [j<span class="fu">|</span> <span class="ot">`tci`</span>;
+                 <span class="ot">`decl eid`</span>;
+                 <span class="ot">`eid`</span> <span class="fu">=</span> <span class="ot">`JFunc funArgs (preamble &lt;&gt; body0)`</span>;
+                 <span class="ot">`ClosureInfo eid&#39; (genArgInfo False $ map idType args) (istr idi)</span>
+<span class="ot">                        (CILayoutFixed 1 []) et (genStaticRefs body)`</span>;
+                 <span class="ot">`decl idi`</span>;
+                 <span class="ot">`id`</span> <span class="fu">=</span> static_fun(<span class="ot">`eid`</span>);
+             <span class="fu">|</span>]</code></pre>
+<p>forml</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">    toJExpr (<span class="dt">ApplyExpression</span> (<span class="dt">SymbolExpression</span> f) []) <span class="fu">=</span> ref (to_name f)
+    toJExpr (<span class="dt">ApplyExpression</span> f []) <span class="fu">=</span> [jmacroE<span class="fu">|</span> <span class="ot">`(f)`</span> <span class="fu">|</span>]
+    toJExpr (<span class="dt">ApplyExpression</span> f (end <span class="ot">-&gt;</span> x <span class="fu">:</span> xs)) <span class="fu">=</span>
+         [jmacroE<span class="fu">|</span> <span class="ot">`(ApplyExpression f xs)`</span>(<span class="ot">`(x)`</span>) <span class="fu">|</span>]
+    toJExpr (<span class="dt">AccessorExpression</span> (<span class="dt">Addr</span> _ _ x) []) <span class="fu">=</span>
+
+    toJExpr (<span class="dt">LetExpression</span> bs ex)
+        <span class="fu">|</span> <span class="fu">length</span> bs <span class="fu">&gt;</span> <span class="dv">0</span> <span class="fu">=</span>
+            [jmacroE<span class="fu">|</span> (function() { <span class="ot">`(foldl1 mappend $ map toLocal bs)`</span>;
+                                    <span class="fu">return</span> <span class="ot">`(ex)`</span> })() <span class="fu">|</span>]
+        <span class="fu">|</span> <span class="fu">otherwise</span> <span class="fu">=</span> toJExpr ex</code></pre>
+</div>
+<div class="section slide level1" id="we-lived-with-postbacks-for-as-long-as-we-could-bear">
+<h1>We lived with postbacks for as long as we could bear</h1>
 <p>But then, jmacro-rpc was born.</p>
 <p>jmacro-rpc provides json rpcs</p>
 <p>(details elided)</p>
-<pre class="sourceCode haskell"><code>-- | A JSON request is a list of values
-type JRequest  = [Value]
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="co">-- | A JSON request is a list of values</span>
+<span class="kw">type</span> <span class="dt">JRequest</span>  <span class="fu">=</span> [<span class="dt">Value</span>]
 
--- | A JSON result is either an error or a value.
-type JResult = Either String Value
+<span class="co">-- | A JSON result is either an error or a value.</span>
+<span class="kw">type</span> <span class="dt">JResult</span> <span class="fu">=</span> <span class="dt">Either</span> <span class="dt">String</span> <span class="dt">Value</span>
 
--- | A JsonRPC is a named function that takes a handle to some state, and
--- yields a function from request to result in some monad.
--- It is a representation of the server side of an RPC call.
-data JsonRPC m s = JsonRPC String (s -&gt; JRequest -&gt; m JResult)
-</code></pre>
+<span class="co">-- | A JsonRPC is a named function that takes a handle to some state, and</span>
+<span class="co">-- yields a function from request to result in some monad.</span>
+<span class="co">-- It is a representation of the server side of an RPC call.</span>
+<span class="kw">data</span> <span class="dt">JsonRPC</span> m s <span class="fu">=</span> <span class="dt">JsonRPC</span> <span class="dt">String</span> (s <span class="ot">-&gt;</span> <span class="dt">JRequest</span> <span class="ot">-&gt;</span> m <span class="dt">JResult</span>)</code></pre>
 </div>
-<div class="slide">
-<h1 id="serve-and-call-rpcs-from-haskell">Serve and call RPCs from Haskell</h1>
-<pre class="sourceCode haskell"><code>-- Pack functions as RPCs
-toJsonRPC :: ToJsonRPC a m =&gt; String -&gt; a -&gt; JsonRPC m ()
-toJsonRPC nm f = JsonRPC nm $ \() -&gt; toJsonRPC_ f
+<div class="section slide level1" id="serve-and-call-rpcs-from-haskell">
+<h1>Serve and call RPCs from Haskell</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="co">-- Pack functions as RPCs</span>
+<span class="ot">toJsonRPC ::</span> <span class="dt">ToJsonRPC</span> a m <span class="ot">=&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">JsonRPC</span> m ()
+toJsonRPC nm f <span class="fu">=</span> <span class="dt">JsonRPC</span> nm <span class="fu">$</span> \() <span class="ot">-&gt;</span> toJsonRPC_ f
 
-toJsonConvRPC :: ToJsonRPC a m =&gt; String -&gt; (s -&gt; a) -&gt; JsonRPC m s
-toJsonConvRPC nm f = JsonRPC nm (\s -&gt; toJsonRPC_ (f s))
-</code></pre>
-<pre class="sourceCode haskell"><code>-- Encode signatures as RPC Stubs
-class ToJsonRPCCall a b | a -&gt; b where
-   toJsonRPCCall_ :: [Value] -&gt; a -&gt; b
+<span class="ot">toJsonConvRPC ::</span> <span class="dt">ToJsonRPC</span> a m <span class="ot">=&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> (s <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> <span class="dt">JsonRPC</span> m s
+toJsonConvRPC nm f <span class="fu">=</span> <span class="dt">JsonRPC</span> nm (\s <span class="ot">-&gt;</span> toJsonRPC_ (f s))</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="co">-- Encode signatures as RPC Stubs</span>
+<span class="kw">class</span> <span class="dt">ToJsonRPCCall</span> a b <span class="fu">|</span> a <span class="ot">-&gt;</span> b <span class="kw">where</span>
+<span class="ot">   toJsonRPCCall_ ::</span> [<span class="dt">Value</span>] <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b
 
-instance (ToJSON a, ToJsonRPCCall b c) =&gt; ToJsonRPCCall (a -&gt; b) (a -&gt; c) where
-   toJsonRPCCall_ xs f = \x -&gt; toJsonRPCCall_ (toJSON x : xs) (f x)
+<span class="kw">instance</span> (<span class="dt">ToJSON</span> a, <span class="dt">ToJsonRPCCall</span> b c) <span class="ot">=&gt;</span> <span class="dt">ToJsonRPCCall</span> (a <span class="ot">-&gt;</span> b) (a <span class="ot">-&gt;</span> c) <span class="kw">where</span>
+   toJsonRPCCall_ xs f <span class="fu">=</span> \x <span class="ot">-&gt;</span> toJsonRPCCall_ (toJSON x <span class="fu">:</span> xs) (f x)
 
-instance ... (base case)
+<span class="kw">instance</span> <span class="fu">...</span> (base <span class="kw">case</span>)
 
-toJsonRPCCall :: ToJsonRPCCall a b =&gt; a -&gt; b
-...
-</code></pre>
+<span class="ot">toJsonRPCCall ::</span> <span class="dt">ToJsonRPCCall</span> a b <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> b
+<span class="fu">...</span></code></pre>
 </div>
-<div class="slide">
-<h1 id="call-rpcs-from-javascript">Call RPCs from JavaScript!</h1>
-<pre class="sourceCode haskell"><code>jsonRPCToDecl :: JsonRPC a m -&gt; JStat
-jsonRPCToDecl (JsonRPC n _) =
-             BlockStat [
-                    DeclStat (StrI n) Nothing,
-                    AssignStat (ValExpr $ JVar $ StrI n)
-                                   [jmacroE|\ {
-                                      var a = Array.prototype.slice.call(arguments);
-                                      return (invokeJsonRPC (serverLoc + &quot;jrpcs&quot;) `(n)` a);
+<div class="section slide level1" id="call-rpcs-from-javascript">
+<h1>Call RPCs from JavaScript!</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">jsonRPCToDecl ::</span> <span class="dt">JsonRPC</span> a m <span class="ot">-&gt;</span> <span class="dt">JStat</span>
+jsonRPCToDecl (<span class="dt">JsonRPC</span> n _) <span class="fu">=</span>
+             <span class="dt">BlockStat</span> [
+                    <span class="dt">DeclStat</span> (<span class="dt">StrI</span> n) <span class="kw">Nothing</span>,
+                    <span class="dt">AssignStat</span> (<span class="dt">ValExpr</span> <span class="fu">$</span> <span class="dt">JVar</span> <span class="fu">$</span> <span class="dt">StrI</span> n)
+                                   [jmacroE<span class="fu">|</span>\ {
+                                      var a <span class="fu">=</span> Array.prototype<span class="fu">.</span>slice<span class="fu">.</span>call(arguments);
+                                      <span class="fu">return</span> (invokeJsonRPC (serverLoc <span class="fu">+</span> <span class="st">&quot;jrpcs&quot;</span>) <span class="ot">`(n)`</span> a);
                                     }
-                                    |]
-          ]
-</code></pre>
+                                    <span class="fu">|</span>]
+          ]</code></pre>
 </div>
-<div class="slide">
-<h1 id="serve-rpcs-over-the-web">Serve RPCs over the web</h1>
-<pre class="sourceCode haskell"><code>serveRpcs :: MonadSnap m =&gt; (Int -&gt; m s) -&gt; [JsonRPC m s] -&gt; m ()
-</code></pre>
+<div class="section slide level1" id="serve-rpcs-over-the-web">
+<h1>Serve RPCs over the web</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">serveRpcs ::</span> <span class="dt">MonadSnap</span> m <span class="ot">=&gt;</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> m s) <span class="ot">-&gt;</span> [<span class="dt">JsonRPC</span> m s] <span class="ot">-&gt;</span> m ()</code></pre>
 <p>Serve a page and associated RPCs at once</p>
-<pre class="sourceCode haskell"><code>-- Generalized version
-handleRpcs :: (Functor m, Monad m) =&gt; (Int -&gt; m s) -&gt;
-              [JsonRPC m s] -&gt; BL.ByteString -&gt; m BL.ByteString
-</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="co">-- Generalized version</span>
+<span class="ot">handleRpcs ::</span> (<span class="kw">Functor</span> m, <span class="kw">Monad</span> m) <span class="ot">=&gt;</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> m s) <span class="ot">-&gt;</span>
+              [<span class="dt">JsonRPC</span> m s] <span class="ot">-&gt;</span> <span class="dt">BL.ByteString</span> <span class="ot">-&gt;</span> m <span class="dt">BL.ByteString</span></code></pre>
 </div>
-<div class="slide">
-<h1 id="serve-stateful-conversations-over-the-web">Serve stateful conversations over the web</h1>
-<pre class="sourceCode haskell"><code>mkConversationPageSimple :: (MonadSnap m) =&gt; (JStat -&gt; m ()) -&gt; IO s -&gt; [JsonRPC m s] -&gt; IO (m ())
-</code></pre>
+<div class="section slide level1" id="serve-stateful-conversations-over-the-web">
+<h1>Serve stateful conversations over the web</h1>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">mkConversationPageSimple ::</span> (<span class="dt">MonadSnap</span> m) <span class="ot">=&gt;</span> (<span class="dt">JStat</span> <span class="ot">-&gt;</span> m ()) <span class="ot">-&gt;</span> <span class="dt">IO</span> s <span class="ot">-&gt;</span> [<span class="dt">JsonRPC</span> m s] <span class="ot">-&gt;</span> <span class="dt">IO</span> (m ())</code></pre>
 <p>We can write asynchronous RPCs on top of synchronous ones. We can have global state or session state or page local state.</p>
-<pre class="sourceCode haskell"><code>-- Generalized version
-mkConversationPageGen :: (MonadIO m1, MonadIO m) =&gt;
-                            IO timestamp
-                            -&gt; (IM.IntMap (timestamp,s) -&gt; IO (IM.IntMap (timestamp,s)))
-                            -&gt; ((Int -&gt; m s) -&gt; [JsonRPC m s] -&gt; m1 resp)
-                            -&gt; (JStat -&gt; m1 resp)
-                            -&gt; IO s
-                            -&gt; [JsonRPC m s]
-                            -&gt; IO (m1 resp, m1 resp)
-</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="co">-- Generalized version</span>
+<span class="ot">mkConversationPageGen ::</span> (<span class="dt">MonadIO</span> m1, <span class="dt">MonadIO</span> m) <span class="ot">=&gt;</span>
+                            <span class="dt">IO</span> timestamp
+                            <span class="ot">-&gt;</span> (<span class="dt">IM.IntMap</span> (timestamp,s) <span class="ot">-&gt;</span> <span class="dt">IO</span> (<span class="dt">IM.IntMap</span> (timestamp,s)))
+                            <span class="ot">-&gt;</span> ((<span class="dt">Int</span> <span class="ot">-&gt;</span> m s) <span class="ot">-&gt;</span> [<span class="dt">JsonRPC</span> m s] <span class="ot">-&gt;</span> m1 resp)
+                            <span class="ot">-&gt;</span> (<span class="dt">JStat</span> <span class="ot">-&gt;</span> m1 resp)
+                            <span class="ot">-&gt;</span> <span class="dt">IO</span> s
+                            <span class="ot">-&gt;</span> [<span class="dt">JsonRPC</span> m s]
+                            <span class="ot">-&gt;</span> <span class="dt">IO</span> (m1 resp, m1 resp)</code></pre>
 <p>Generality through higher order functions, straightforward composition</p>
-<pre class="sourceCode haskell"><code>mkConversationPage getStamp cullMap pageFun emptyState rpcs =
-         (\(rpcPage, mainPage) -&gt; dir (B.pack &quot;jrpcs&quot;) rpcPage &lt;|&gt; mainPage) &lt;$&gt;
-         mkConversationPageGen getStamp cullMap serveRpcs pageFun emptyState rpcs
-</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">mkConversationPage getStamp cullMap pageFun emptyState rpcs <span class="fu">=</span>
+         (\(rpcPage, mainPage) <span class="ot">-&gt;</span> dir (B.pack <span class="st">&quot;jrpcs&quot;</span>) rpcPage <span class="fu">&lt;|&gt;</span> mainPage) <span class="fu">&lt;$&gt;</span>
+         mkConversationPageGen getStamp cullMap serveRpcs pageFun emptyState rpcs</code></pre>
 </div>
-<div class="slide">
-<h1 id="panels-reactivity-the-future">Panels, Reactivity, The Future</h1>
+<div class="section slide level1" id="panels-reactivity-the-future">
+<h1>Panels, Reactivity, The Future</h1>
 </div>
 </body>
 </html>

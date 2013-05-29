@@ -183,6 +183,20 @@ Now can parse almost all JavaScript _and_ a fair number of FP idioms
 
 Combinators parsers are great for exploratory syntax development.
 
+Some sample code
+===
+
+>    fun foldl f v xs {
+>        var acc = v;
+>        for( var i = 0; i < xs.length; i++) {acc = f acc xs[i];};
+>        return acc;
+>    };
+>
+>    fun map f xs -> foldl (\acc x {acc.push(f x); return acc}) [] xs;
+>
+>    fun minimumBy cmp xs ->
+>       foldl (\x y -> cmp x y ? x : y) (xs[0]) xs.slice(1);
+
 Next, Antiquotation
 ===
 
@@ -211,6 +225,43 @@ JavaScript variables (names) can be used in Haskell!
 Tron went through the wall.
 
 Powerful abstractions generate more than you put in.
+
+Examples
+===
+
+ghcjs
+
+> genPrim IndexByteArrayOp_Float [r] [a,i] =
+>      PrimInline [j| `r` = `a`.getFloat32(`i`<<2); |]
+> genPrim IndexByteArrayOp_Double [r] [a,i] =
+>      PrimInline [j| `r` = `a`.getFloat64(`i`<<3); |]
+
+> genToplevelRhs i (StgRhsClosure _cc _bi [] upd_flag _srt args body) =
+>    toplevel <$> do
+>       ...
+>       return [j| `tci`;
+>                  `decl eid`;
+>                  `eid` = `JFunc funArgs (preamble <> body0)`;
+>                  `ClosureInfo eid' (genArgInfo False $ map idType args) (istr idi)
+>                         (CILayoutFixed 1 []) et (genStaticRefs body)`;
+>                  `decl idi`;
+>                  `id` = static_fun(`eid`);
+>              |]
+
+forml
+
+>     toJExpr (ApplyExpression (SymbolExpression f) []) = ref (to_name f)
+>     toJExpr (ApplyExpression f []) = [jmacroE| `(f)` |]
+>     toJExpr (ApplyExpression f (end -> x : xs)) =
+>          [jmacroE| `(ApplyExpression f xs)`(`(x)`) |]
+>     toJExpr (AccessorExpression (Addr _ _ x) []) =
+>
+>     toJExpr (LetExpression bs ex)
+>         | length bs > 0 =
+>             [jmacroE| (function() { `(foldl1 mappend $ map toLocal bs)`;
+>                                     return `(ex)` })() |]
+>         | otherwise = toJExpr ex
+
 
 We lived with postbacks for as long as we could bear
 ===
